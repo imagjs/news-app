@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imag>
+    <page>
+        <title style="background:#ffffff">
+            <left><button role="back" style="color:#1f1f1f"/></left>
+            <center><label style="color:#1f1f1f;font-size:17">手机号登陆</label></center>
+        </title>
+        <content style="background:#f4f5f6">
+            <list type="transparent" style="margin:28 19">
+                <item style="padding:1 1 0;border:1 #efefef">
+                    <row>
+                        <input type="text" placeholder="手机号" style="font-size:14;color:#0a0a0a;background:#ffffff;height:40"/>
+                    </row>
+                </item>
+                <item style="padding:1;border:1 #efefef;background:#ffffff;col-width:*,1,70">
+                    <col>
+                        <row><input type="text" placeholder="密码" style="font-size:14;color:#0a0a0a;height:40;background:#ffffff;"/></row>
+                    </col>
+                    <col><row style="height:14;background:#efefef"></row></col>
+                    <col><row><label style="font-size:14;color:#8c8c8c;align:center">找回密码</label></row></col>
+                </item>
+                <item style="margin:20 0;padding:14;background:#999999;corner-radius:4">
+                    <col><row><label style="color:#ffffff;font-size:15;align:center">登 录</label></row></col>
+                </item>
+                <item style="padding:0">
+                    <col><row><label style="color:#1a88d5;font-szie:14;align:center">注册账号</label></row></col>
+                </item>
+            </list>
+        </content>
+    </page>
+</imag>

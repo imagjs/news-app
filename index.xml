@@ -1,0 +1,911 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imag>
+    <script>
+		<![CDATA[
+            var storage = $phone.localStorage();
+            //手机屏幕参数
+            var phone_height;
+            var phone_width;
+            var density;
+            var dp;
+            //api地址
+            var home_source = new Array(17);
+            var video_source = new Array(12);
+            var theme_source = new Array(2);
+			$page.onload = function(){
+				//check_time();
+            	dip();//获取屏幕参数
+				get_home_page();
+				get_video_page();
+				get_theme_page();
+			}
+			//获取话题页
+			function get_theme_page(){
+				get_theme_page_source();
+				get_theme_data('theme_list0',theme_source[0]);
+			}
+			function get_theme_page_source(){
+				theme_source[0] = "http://api.1-blog.com/biz/bizserver/xiaohua/list.do";//推荐（笑话接口）
+			}
+			function get_theme_data(list,source){
+				$http.get(source,function(data){
+					var listData = JSON.parse(data).detail;
+					var listJson = {items:[]};
+					for (var i = 0;i<listData.length;i++){
+						if(listData[i].picUrl!=""){
+							var itemJson = {
+								template:0,
+								widgets:{
+									content:{text:listData[i].content},
+                                    img0:{
+                                        src:listData[i].picUrl,
+                                        onclick:'gallery("'+listData[i].picUrl+'")'
+                                    },
+									author:{text:listData[i].author}
+								}
+							}
+						}else {
+							var itemJson = {
+								template:1,
+								widgets:{
+									content:{text:listData[i].content},
+									author:{text:listData[i].author}
+								}
+							}
+						}
+						listJson.items.push(itemJson);
+					}
+					$(list).update(listJson);
+				})
+			}
+			//获取视频页内容get_video_page()
+			function get_video_page(){
+				get_video_page_source();
+				get_video_data('video_list0',video_source[0]);
+				//adjust_video_pic_size('video_1');
+			}
+			function get_video_page_source(){
+				video_source[0] = "http://api.sina.cn/sinago/list.json?channel=video_funny";//推荐
+			}
+			function get_video_data(list,source){
+				$http.get(source,function(data){
+                    //alert(data);
+					var listData = JSON.parse(data).data.list;
+					var listJson = {items:[]};
+					for(var i = 0;i<listData.length;i++){
+						var link = listData[i].video_info.url;
+						var title = listData[i].title;
+						var runtime = check_time(parseInt(listData[i].video_info.runtime));
+						//add_video_info(title,i);
+						var itemJson = {
+							template:0,
+							id:'video_item'+i,
+							onclick:'web_open("'+link+'","'+title+'")',
+							widgets:{
+								title:{text:title},
+								kpic:{src:listData[i].kpic,
+										id:'video_'+i},
+								source:{text:'来源：'+listData[i].source},
+								runtime:{text:runtime},
+								playnumber:{text:listData[i].video_info.playnumber+'次播放'}
+							}
+						}
+						listJson.items.push(itemJson);
+					}
+					$(list).update(listJson);
+				})
+			}
+			//解析视频播放时间
+			function check_time(runtime){
+				runtime = parseInt(runtime/1000);
+				var hour = parseInt(runtime/60);
+				var minute = runtime-hour*60;
+				if(hour<10){hour='0'+hour;}
+				if(minute<10){minute='0'+minute;}
+				return hour+':'+minute;
+			}
+			//视频图上方文字和时长relative
+			function add_video_info(title,i){
+				var video_title = $C('<label style="font-size:14;color:#ffffff;margin:14 15" position="topleft" relative="video_'+i+'">'+title+'</label>'+
+                        '<icon src="video_play.png" position="middlecenter" relative="video_'+i+'"/>');
+				$('video_content0').add(video_title);
+			}
+        	//视频页图片尺寸
+			function adjust_video_pic_size(id){
+				var pic_width = parseInt(phone_width/dp);
+                var pic_height = parseInt(phone_width*0.5625/dp);
+                alert(pic_height+'前面是高度，后面是宽度'+pic_width);
+                //$('video_1').css({'height':'810px','width':'1440px'});
+                $('video_1').css('height:'+pic_height+';width:'+pic_width);
+			}
+			//获取首页内容get_home_page()
+			function get_home_page(){
+				//$('home_content').clear();
+				get_home_page_source();
+            	//get_home_data('home_list0',home_source[0]);
+				//adjust_home_pic_size('big_img_show');
+                for(i = 0;i<7;i++){
+            		get_home_data('home_list'+i,home_source[i]);
+                }
+			}
+            function get_home_page_source(){
+				home_source[0] = "http://api.sina.cn/sinago/list.json?channel=news_toutiao";//推荐
+           		home_source[1] = "http://api.sina.cn/sinago/list.json?channel=news_tech";//科技（竞技）
+           		home_source[2] = "http://api.sina.cn/sinago/list.json?channel=news_sports";//体育
+           		home_source[3] = "http://api.sina.cn/sinago/list.json?channel=news_auto";//汽车
+           		home_source[4] = "http://api.sina.cn/sinago/list.json?channel=news_finance";//财经
+           		home_source[5] = "http://api.sina.cn/sinago/list.json?channel=news_funny";//搞笑
+           		home_source[6] = "http://api.sina.cn/sinago/list.json?channel=news_ent";//娱乐
+           		home_source[7] = "";//汽车
+           		home_source[8] = "";//财经
+           		home_source[9] = "";//明显
+           		home_source[10] = "";//八卦
+           		home_source[11] = "";//娱乐
+           		home_source[12] = "";//趣图
+           		home_source[13] = "";//美女
+           		home_source[14] = "";//健康
+           		home_source[15] = "";//正能量
+           		home_source[16] = "";//房产
+            }
+			function get_home_data(list,source){
+				$http.get(source,function(data){
+                    //alert(data);
+					var listData = JSON.parse(data).data.list;
+					var listJson = {items:[]};
+					for(var i = 0;i<listData.length;i++){
+						if(listData[i].feedShowStyle=='common'){
+                            var link = listData[i].link;
+                            var title = listData[i].title;
+							//验证评论是否存在
+							if(listData[i].comment_count_info!=null&&listData[i].comment_count_info!=""){
+								var comment_count = listData[i].comment_count_info.total;
+							}else {
+								var comment_count = "";
+							}
+							if(listData[i].pics!=null&&listData[i].pics!=""){
+								var pics = listData[i].pics;
+								var itemJson = {
+									template:0,
+									id:'home_item'+i,
+									onclick:'web_open("'+link+'","'+title+'")',
+									widgets:{
+										title:{text:title},
+										kpic0:{src:pics.list[0].kpic},
+										kpic1:{src:pics.list[1].kpic},
+										kpic2:{src:pics.list[2].kpic},
+										source:{text:'来源：'+listData[i].source},
+										comment_count:{text:comment_count+'评论'},
+										delete:{oncilck:'hidden_menu("item'+i+'")'}
+									}
+								}
+							}else{
+								var itemJson = {
+									template:1,
+									id:'home_item'+i,
+									onclick:'web_open("'+link+'","'+title+'")',
+									widgets:{
+										title:{text:title},
+										source:{text:'来源：'+listData[i].source},
+										comment_count:{text:comment_count+'评论'},
+										kpic:{src:listData[i].kpic},
+										delete:{oncilck:'hidden_menu("item'+i+'")'}
+									}
+								}
+							}
+							listJson.items.push(itemJson);
+						}else if(listData[i].feedShowStyle=='big_img_show'){
+                            var link = listData[i].link;
+                            var title = listData[i].title;
+                            var itemJson = {
+                                template:2,
+                                id:'big_img_show'+i,
+								onclick:'web_open("'+link+'","'+title+'")',
+                                widgets:{
+									ad_title:{text:title},
+									bpic:{src:listData[i].bpic},
+									delete:{oncilck:'hidden_menu("big_img_show'+i+'")'}
+                            	}
+                            }
+							listJson.items.push(itemJson);
+                        }
+					}
+					$(list).update(listJson);
+				})
+			}
+			//修改首页推广图片尺寸
+			function adjust_home_pic_size(id){
+                var img_width = parseInt(phone_width/dp-32);
+                var img_height = parseInt(img_width/1.77);
+                //alert('图片宽度：'+img_width+'，图片高度：'+img_height);
+                $(id).css('width:'+img_width+';height:'+img_height);				
+			}
+			//以下通用方法
+			function web_open(link,title){
+				$page.open('web.xml');
+				storage.setItem('link', link);
+				storage.setItem('title', title);
+			}
+			function hidden_menu(id){
+				var hidden_menu = $C('<popupmenu id="hidden_menu">'+
+										'<list><item onclick="hidden('+id+');" style="corner-radius:6">'+
+           									'<label style="align:center">不感兴趣并隐藏</label></item>'+
+           								'</list>'+
+									'</popupmenu>');
+				hidden_menu.open();
+			}
+			//查看大图
+			function gallery(url){
+                //alert('图片地址为：'+url);
+				$page.gallery([{src:url}]);
+			}
+			//类别选择
+			function hidden(id){
+           		$('hidden_menu').close();
+           		hint('已隐藏');
+				$(id).css("display:none");
+			}
+        	//获取屏幕参数
+            function dip(){
+                var info = $phone.info();
+                phone_height = info['screenHeight'];
+                phone_width = info['screenWidth'];
+                density = info['density'];
+                switch(density){
+                    case 'mdpi':
+                        dp = 1;
+                        break;
+                    case 'ldpi':
+                        dp = 1.33;
+                        break;
+                    case 'hdpi':
+                        dp = 1.5;
+                        break;
+                    case 'xhdpi':
+                        dp = 2;
+                        break;
+                    case 'xxhdpi':
+                        dp = 3.5;
+                        break;
+                    case 'xxxhdpi':
+                        dp = 4;
+                        break;
+                }
+            }
+			function web_test(){
+				$page.open('web.xml');
+				storage.setItem('link', 'http://api.sina.cn/sinago/video_location.json?video_id=c~Swo0zetjJCczOIyLeecg__.mp4?vend=miaopai&c~Swo0zetjJCczOIyLeecg__&video_play_url=http%3A%2F%2Fgslb.miaopai.com%2Fstream%2Fc%7ESwo0zetjJCczOIyLeecg__.mp4%3Fvend%3Dmiaopai%26c%7ESwo0zetjJCczOIyLeecg__.mp4&video_cate=miaopai&docID=fxtrwtu9915419&col=gossip&fromsinago=1&postt=news_video_gossip_1&from=');
+				storage.setItem('title', '曝王菲将出新歌 没宣传很任性');				
+			}
+		]]>
+    </script>
+    <page>
+		<tabs style="background:#f4f5f6">
+			<tab label="刷新" icon="tab_home.png,tab_home_red.png" style="label-color:#464646,#f85959">
+				<header>
+                    <list type="transparent">
+                        <item style="padding:0;col-width:*,35,35;background:#d43d3d">
+                            <col>
+                                <tabbar style="background:#d43d3d;label-color:#f4cccc,#ffffff;indicator-height:0">
+                                    <item label="推荐"></item>
+                                    <item label="科技"></item>
+                                    <item label="体育"></item>
+                                    <item label="汽车"></item>
+                                    <item label="财经"></item>
+                                    <item label="搞笑"></item>
+                                    <item label="娱乐"></item>
+                                    <item label="汽车"></item>
+                                    <item label="财经"></item>
+                                    <item label="军事"></item>
+                                    <item label="国际"></item>
+                                    <item label="段子"></item>
+                                    <item label="趣图"></item>
+                                    <item label="美女"></item>
+                                    <item label="健康"></item>
+                                    <item label="正能量"></item>
+                                    <item label="房产"></item>
+                                </tabbar>
+                            </col>
+                            <col><row><icon src="plus.png" style="align:center"/></row></col>
+                            <col><row><icon src="search.png" style="align:center"/></row></col>
+                        </item>
+                    </list>
+				</header>
+				<contents id="contents">
+					<content style="background:#ffffff" draggable="true" ondragdown="$page.refresh()">
+						<list reuse="true" id="home_list0">
+                            <item style="padding:8 0;margin:0 8">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:15;margin-bottom:10"/></row>
+									<row>
+										<img reusekey="kpic0" style="height:75;width:30%;align:left"/>
+										<img reusekey="kpic1" style="height:75;width:30%;align:center"/>
+										<img reusekey="kpic2" style="height:75;width:30%;align:right"/>
+									</row>
+                                    <row style="height:8"></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                            </item>
+                            <item style="padding:8 0;margin:0 8;col-valign:top,top;col-width:*,110">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:16;margin-bottom:10"/></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                                <col><row><img reusekey="kpic" style="height:58;width:88;align:right"/></row></col>
+                            </item>
+                            <item style="padding:8 0;margin:0 16">
+                                <row><label reusekey="ad_title" style="color:#202020;font-size:16"/></row>
+                                <row><img reusekey="bpic" id="big_img_show" style="width:92%;height:186;margin:5 0;align:center"/></row>
+                                <row>
+                                    <label style="font-size:9;color:#1686d4;border:1 #1686d4;corner-radius:4"> 推广 </label>
+                                    <icon reusekey="delete" src="delete.png" style="align:right"/>
+                                </row>
+                            </item>
+                        </list>
+					</content>
+					<content style="background:#ffffff" draggable="true" ondragdown="$page.refresh()">
+						<list reuse="true" id="home_list1">
+                            <item style="padding:8 0;margin:0 8">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:15;margin-bottom:10"/></row>
+									<row>
+										<img reusekey="kpic0" style="height:75;width:30%;align:left"/>
+										<img reusekey="kpic1" style="height:75;width:30%;align:center"/>
+										<img reusekey="kpic2" style="height:75;width:30%;align:right"/>
+									</row>
+                                    <row style="height:8"></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                            </item>
+                            <item style="padding:8 0;margin:0 8;col-valign:top,top;col-width:*,110">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:16;margin-bottom:10"/></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                                <col><row><img reusekey="kpic" style="height:58;width:88;align:right"/></row></col>
+                            </item>
+                            <item style="padding:8 0;margin:0 16">
+                                <row><label reusekey="ad_title" style="color:#202020;font-size:16"/></row>
+                                <row><img reusekey="bpic" id="big_img_show" style="width:92%;height:186;margin:5 0;align:center"/></row>
+                                <row>
+                                    <label style="font-size:9;color:#1686d4;border:1 #1686d4;corner-radius:4"> 推广 </label>
+                                    <icon reusekey="delete" src="delete.png" style="align:right"/>
+                                </row>
+                            </item>
+                        </list>
+					</content>
+					<content style="background:#ffffff">
+						<list reuse="true" id="home_list2">
+                            <item style="padding:8 0;margin:0 8">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:15;margin-bottom:10"/></row>
+									<row>
+										<img reusekey="kpic0" style="height:75;width:30%;align:left"/>
+										<img reusekey="kpic1" style="height:75;width:30%;align:center"/>
+										<img reusekey="kpic2" style="height:75;width:30%;align:right"/>
+									</row>
+                                    <row style="height:8"></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                            </item>
+                            <item style="padding:8 0;margin:0 8;col-valign:top,top;col-width:*,110">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:16;margin-bottom:10"/></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                                <col><row><img reusekey="kpic" style="height:58;width:88;align:right"/></row></col>
+                            </item>
+                            <item style="padding:8 0;margin:0 16">
+                                <row><label reusekey="ad_title" style="color:#202020;font-size:16"/></row>
+                                <row><img reusekey="bpic" id="big_img_show" style="width:92%;height:186;margin:5 0;align:center"/></row>
+                                <row>
+                                    <label style="font-size:9;color:#1686d4;border:1 #1686d4;corner-radius:4"> 推广 </label>
+                                    <icon reusekey="delete" src="delete.png" style="align:right"/>
+                                </row>
+                            </item>
+                        </list>
+					</content>
+					<content style="background:#ffffff">
+						<list reuse="true" id="home_list3">
+                            <item style="padding:8 0;margin:0 8">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:15;margin-bottom:10"/></row>
+									<row>
+										<img reusekey="kpic0" style="height:75;width:30%;align:left"/>
+										<img reusekey="kpic1" style="height:75;width:30%;align:center"/>
+										<img reusekey="kpic2" style="height:75;width:30%;align:right"/>
+									</row>
+                                    <row style="height:8"></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                            </item>
+                            <item style="padding:8 0;margin:0 8;col-valign:top,top;col-width:*,110">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:16;margin-bottom:10"/></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                                <col><row><img reusekey="kpic" style="height:58;width:88;align:right"/></row></col>
+                            </item>
+                            <item style="padding:8 0;margin:0 16">
+                                <row><label reusekey="ad_title" style="color:#202020;font-size:16"/></row>
+                                <row><img reusekey="bpic" id="big_img_show" style="width:92%;height:186;margin:5 0;align:center"/></row>
+                                <row>
+                                    <label style="font-size:9;color:#1686d4;border:1 #1686d4;corner-radius:4"> 推广 </label>
+                                    <icon reusekey="delete" src="delete.png" style="align:right"/>
+                                </row>
+                            </item>
+                        </list>
+					</content>
+					<content style="background:#ffffff">
+						<list reuse="true" id="home_list4">
+                            <item style="padding:8 0;margin:0 8">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:15;margin-bottom:10"/></row>
+									<row>
+										<img reusekey="kpic0" style="height:75;width:30%;align:left"/>
+										<img reusekey="kpic1" style="height:75;width:30%;align:center"/>
+										<img reusekey="kpic2" style="height:75;width:30%;align:right"/>
+									</row>
+                                    <row style="height:8"></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                            </item>
+                            <item style="padding:8 0;margin:0 8;col-valign:top,top;col-width:*,110">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:16;margin-bottom:10"/></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                                <col><row><img reusekey="kpic" style="height:58;width:88;align:right"/></row></col>
+                            </item>
+                            <item style="padding:8 0;margin:0 16">
+                                <row><label reusekey="ad_title" style="color:#202020;font-size:16"/></row>
+                                <row><img reusekey="bpic" id="big_img_show" style="width:92%;height:186;margin:5 0;align:center"/></row>
+                                <row>
+                                    <label style="font-size:9;color:#1686d4;border:1 #1686d4;corner-radius:4"> 推广 </label>
+                                    <icon reusekey="delete" src="delete.png" style="align:right"/>
+                                </row>
+                            </item>
+                        </list>
+					</content>
+					<content style="background:#ffffff">
+						<list reuse="true" id="home_list5">
+                            <item style="padding:8 0;margin:0 8">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:15;margin-bottom:10"/></row>
+									<row>
+										<img reusekey="kpic0" style="height:75;width:30%;align:left"/>
+										<img reusekey="kpic1" style="height:75;width:30%;align:center"/>
+										<img reusekey="kpic2" style="height:75;width:30%;align:right"/>
+									</row>
+                                    <row style="height:8"></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                            </item>
+                            <item style="padding:8 0;margin:0 8;col-valign:top,top;col-width:*,110">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:16;margin-bottom:10"/></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                                <col><row><img reusekey="kpic" style="height:58;width:88;align:right"/></row></col>
+                            </item>
+                            <item style="padding:8 0;margin:0 16">
+                                <row><label reusekey="ad_title" style="color:#202020;font-size:16"/></row>
+                                <row><img reusekey="bpic" id="big_img_show" style="width:92%;height:186;margin:5 0;align:center"/></row>
+                                <row>
+                                    <label style="font-size:9;color:#1686d4;border:1 #1686d4;corner-radius:4"> 推广 </label>
+                                    <icon reusekey="delete" src="delete.png" style="align:right"/>
+                                </row>
+                            </item>
+                        </list>
+					</content>
+					<content style="background:#ffffff">
+						<list reuse="true" id="home_list6">
+                            <item style="padding:8 0;margin:0 8">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:15;margin-bottom:10"/></row>
+									<row>
+										<img reusekey="kpic0" style="height:75;width:30%;align:left"/>
+										<img reusekey="kpic1" style="height:75;width:30%;align:center"/>
+										<img reusekey="kpic2" style="height:75;width:30%;align:right"/>
+									</row>
+                                    <row style="height:8"></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                            </item>
+                            <item style="padding:8 0;margin:0 8;col-valign:top,top;col-width:*,110">
+								<col>
+									<row><label reusekey="title" style="color:#202020;font-size:16;margin-bottom:10"/></row>
+									<row>
+										<label reusekey="source" style="font-size:11;color:#838383"/>
+										<label reusekey="comment_count" style="font-size:11;color:#838383;margin-left:5"/>
+                                        <label style="font-size:9;color:#f05757;margin-left:5;border:1 #f05757;corner-radius:4"> 热 </label>
+                                        <icon reusekey="delete" src="delete.png" style="align:right"/>
+									</row>
+								</col>
+                                <col><row><img reusekey="kpic" style="height:58;width:88;align:right"/></row></col>
+                            </item>
+                            <item style="padding:8 0;margin:0 16">
+                                <row><label reusekey="ad_title" style="color:#202020;font-size:16"/></row>
+                                <row><img reusekey="bpic" id="big_img_show" style="width:92%;height:186;margin:5 0;align:center"/></row>
+                                <row>
+                                    <label style="font-size:9;color:#1686d4;border:1 #1686d4;corner-radius:4"> 推广 </label>
+                                    <icon reusekey="delete" src="delete.png" style="align:right"/>
+                                </row>
+                            </item>
+                        </list>
+					</content>
+					<content style="background:#ffffff">
+					</content>
+					<content style="background:#ffffff">
+					</content>
+					<content style="background:#ffffff">
+					</content>
+					<content style="background:#ffffff">
+					</content>
+					<content style="background:#ffffff">
+					</content>
+					<content style="background:#ffffff">
+					</content>
+					<content style="background:#ffffff">
+					</content>
+					<content style="background:#ffffff">
+					</content>
+					<content style="background:#ffffff">
+					</content>
+					<content style="background:#ffffff">
+					</content>
+				</contents>
+			</tab>
+			<tab label="视频" icon="tab_video.png,tab_video_red.png" style="label-color:#464646,#f85959">
+				<header>
+                    <list type="transparent">
+                        <item style="padding:0;col-width:*,35;background:#ffffff">
+                            <col>
+                                <tabbar style="background:#ffffff;label-color:#373737,#fa4444;indicator-height:0">
+                                    <item label="推荐"></item>
+                                    <item label="笑cry"></item>
+                                    <item label="震惊"></item>
+                                    <item label="暖心"></item>
+                                    <item label="最娱乐"></item>
+                                    <item label="萌萌哒"></item>
+                                    <item label="小品"></item>
+                                    <item label="爱生活"></item>
+                                    <item label="妹纸"></item>
+                                    <item label="掠影"></item>
+                                    <item label="开眼"></item>
+                                    <item label="原创精选"></item>
+                                </tabbar>
+                            </col>
+                            <col><row><icon src="search_black.png" style="height:17;align:center"/></row></col>
+                        </item>
+                    </list>
+				</header>
+                <contents id="contents">
+					<content style="background:#f4f5f6" id="video_content0" draggable="true" ondragdown="$page.refresh()">
+						<list type="transparent" reuse="true" id="video_list0">       
+                            <item style="padding:0;background:#ffffff">
+								<col>
+                                    <row style="padding:14 14">
+                                        <label reusekey="title" style="font-size:15;color:#0e0e0e"/>
+										<label reusekey="playnumber" style="font-size:13;color:#8b8b8b;align:right"/>
+                                    </row>
+                                    <row><img reusekey="kpic" style="width:100%;height:203"/></row>
+									<row style="padding:8 14">
+										<label reusekey="source" style="font-size:13;color:#8b8b8b"/>
+										<label reusekey="runtime" style="font-size:13;color:#8b8b8b;align:right;margin-right:15"/>
+										<label style="font-size:13;color:#8b8b8b;align:right">· · ·</label>
+									</row>
+                                    <row style="height:11;background:#f4f5f6"></row>
+								</col>
+                            </item>
+                        </list>
+					</content>
+                    <content style="background:#f4f5f6" draggable="true" ondragdown="$page.refresh()">
+                        <label style="font-size:14;color:#ffffff;margin:14 15" position="topleft" relative="video_1">曝王菲将出新歌 没宣传很任性</label>
+                        <icon src="video_play.png" position="middlecenter" relative="video_1"/>
+						<list type="transparent">       
+                            <item style="padding:0;margin-bottom:11;background:#ffffff" onclick="web_test()">
+								<col>
+                                    <row style="padding:14 14">
+                                        <label style="font-size:15;color:#0e0e0e">曝王菲将出新歌 没宣传很任性</label>
+										<label style="font-size:11;color:#8b8b8b;align:right">14738次播放</label>
+                                    </row>
+                                    <row><img id="video_1" style="width:100%;height:203" src="http://l.sinaimg.cn/n/default/transform/20160705/IdOa-fxtsats1585228.jpg/original.jpg"/></row>
+									<row style="padding:8 14">
+										<label style="font-size:13;color:#8b8b8b">来源：秒拍</label>
+										<label style="font-size:13;color:#8b8b8b;align:right">· · ·</label>
+									</row>
+								</col>
+                            </item>
+                            <item style="padding:0;margin-bottom:11;background:#ffffff">
+								<col>
+                                    <row style="padding:14 15">
+                                        <label style="font-size:15;color:#0e0e0e">曝王菲将出新歌 没宣传很任性</label>
+										<label style="font-size:11;color:#8b8b8b;align:right">14738次播放</label></row>
+                                    <row><img id="video_2" style="width:100%;height:203" src="http://l.sinaimg.cn/n/default/transform/20160705/IdOa-fxtsats1585228.jpg/original.jpg"/></row>
+									<row style="padding:8 14">
+										<label style="font-size:13;color:#8b8b8b">来源：秒拍</label>
+										<label style="font-size:13;color:#8b8b8b;align:right">· · ·</label>
+									</row>
+								</col>
+                            </item>
+                        </list>
+					</content>
+                    <content style="background:#f4f5f6"><label>好声音</label></content>
+                    <content style="background:#f4f5f6"><label>看天下</label></content>
+                    <content style="background:#f4f5f6"><label>小品</label></content>
+                    <content style="background:#f4f5f6"><label>萌萌哒</label></content>
+                    <content style="background:#f4f5f6"><label>最娱乐</label></content>
+                    <content style="background:#f4f5f6"><label>爱生活</label></content>
+                    <content style="background:#f4f5f6"><label>妹纸</label></content>
+                    <content style="background:#f4f5f6"><label>掠影</label></content>
+                    <content style="background:#f4f5f6"><label>开眼</label></content>
+                    <content style="background:#f4f5f6"><label>原创精选</label></content>
+                </contents>
+            </tab>
+			<tab label="话题" icon="tab_theme.png,tab_theme_red.png" style="label-color:#464646,#f85959">
+                <header>
+                    <list type="transparent">
+                        <item style="padding:0 14;background:#ffffff;col-width:*,200,*">
+                            <col><row><icon src="theme_notice.png"/></row></col>
+                            <col><row>
+                                	<tabbar style="background:#ffffff;label-color:#0b0b0b;indicator-height:3;indicator-color:#f85353 ">
+                                        <item label="推荐"></item>
+                                        <item label="关注"></item>
+                                    </tabbar>
+                                </row></col>
+                            <col><row><icon src="search_black.png" style="height:17;align:right"/></row></col>
+                        </item>
+                    </list>
+                </header>
+                <contents id="contents">
+                    <content style="background:#f4f5f6">
+                        <list type="transparent">
+                            <item style="padding:7 0;background:#ffffff">
+                                <screens>
+                                    <screen><list type="transparent"><item style="padding:9">
+                                                <col><row><icon src="avatar1.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">black man?</label></row></col>
+                                                <col><row><icon src="avatar2.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">星际穿越</label></row></col>
+                                                <col><row><icon src="avatar3.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">爱玛哥</label></row></col>
+                                                <col><row><icon src="avatar4.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">喵</label></row></col>
+                                    	</item></list></screen>
+                                    <screen><list type="transparent"><item style="padding:9">
+                                                <col><row><icon src="avatar3.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">爱玛哥</label></row></col>
+                                                <col><row><icon src="avatar4.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">喵</label></row></col>
+                                                <col><row><icon src="avatar1.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">black man?</label></row></col>
+                                                <col><row><icon src="avatar2.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">星际穿越</label></row></col>
+                                    	</item></list></screen>
+                                    <screen><list type="transparent"><item style="padding:9">
+                                                <col><row><icon src="avatar2.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">星际穿越</label></row></col>
+                                                <col><row><icon src="avatar3.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">爱玛哥</label></row></col>
+                                                <col><row><icon src="avatar1.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">black man?</label></row></col>
+                                                <col><row><icon src="avatar4.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">喵</label></row></col>
+                                    	</item></list></screen>
+                                    <screen><list type="transparent"><item style="padding:9">
+                                                <col><row><icon src="avatar4.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">喵</label></row></col>
+                                                <col><row><icon src="avatar1.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">black man?</label></row></col>
+                                                <col><row><icon src="avatar2.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">星际穿越</label></row></col>
+                                                <col><row><icon src="avatar3.jpg" style="height:55;align:center"/></row>
+                                                    <row style="margin:6 0"><label style="margin:3 0 0;font-size:10;color:#929292;align:center">爱玛哥</label></row></col>
+                                    	</item></list></screen>
+                                </screens>
+                            </item>
+                        </list>
+                        <list reuse="true" id="theme_list0" type="transparent">
+                            <item style="padding:0;background:#ffffff">
+                                <col>
+                                    <row style="height:11;background:#f4f5f6"></row>
+                                    <row style="padding:15"><label reusekey="content" style="font-size:18;color:#222222"/></row>
+                                    <row style="padding:0 15">
+                                        <img reusekey="img0" style="width:30%;align:left"/>
+                                    </row>
+                                    <row style="padding:15">
+                                        <label reusekey="author" style="color:#919191;font-size:10"/>
+                                        <label style="color:#919191;font-size:10;margin-left:10">14小时前</label>
+                                        <icon src="theme_like.png" style="margin-right:4;align:right"/>
+                                        <label style="font-size:10;color:#909090;align:right;margin-right:15">10</label>
+                                        <icon src="theme_comment.png" style="margin-right:4;align:right"/>
+                                        <label style="font-size:10;color:#909090;align:right;margin-right:10">10</label>
+                                    </row>
+                                </col>
+                            </item>
+                            <item style="padding:0;background:#ffffff">
+                                <col>
+                                    <row style="height:11;background:#f4f5f6"></row>
+                                    <row style="height:15"></row>
+                                    <row style="padding:0 15"><label reusekey="content" style="font-size:18;color:#222222"/></row>
+                                    <row style="padding:15">
+                                        <label reusekey="author" style="color:#919191;font-size:10"/>
+                                        <label style="color:#919191;font-size:10;margin-left:10">14小时前</label>
+                                        <icon src="theme_like.png" style="margin-right:4;align:right"/>
+                                        <label style="font-size:10;color:#909090;align:right;margin-right:15">10</label>
+                                        <icon src="theme_comment.png" style="margin-right:4;align:right"/>
+                                        <label style="font-size:10;color:#909090;align:right;margin-right:10">10</label>
+                                    </row>
+                                </col>
+                            </item>
+                        </list>
+                    </content>
+                    <content>
+                        <list type="transparent">
+                            <item style="padding:15;margin-top:11;background:#ffffff">
+                                <col>
+                                    <row><label style="font-size:18;color:#222222"><![CDATA[<font color="#46699c">#颓废 </font>今年葛优=纪春生那组照片绕世界红，我想到个事。他的作品里，经典部分一般是他跟某贫嘴，这个某，从吕丽萍到侯耀华到冯小刚到何冰到英达到冯小刚那些美女们。女的里真能跟他递话来回的，真也就是刘蓓和徐帆。男的里面，跟他最搭的，真就是梁天咱二叔贾志新。平时都葛优挤兑别人，就二叔能挤兑他。]]></label></row>
+                                    <row style="padding:11 0">
+                                        <icon src="avatar0.jpg" style="width:30%;align:left"/>
+                                        <icon src="avatar1.jpg" style="width:30%;align:center"/>
+                                        <icon src="avatar0.jpg" style="width:30%;align:right"/>
+                                    </row>
+                                    <row>
+                                        <label style="color:#919191;font-size:10">张佳玮</label>
+                                        <label style="color:#919191;font-size:10;margin-left:10">14小时前</label>
+                                        <icon src="theme_like.png" style="margin-right:4;align:right"/>
+                                        <label style="font-size:10;color:#909090;align:right;margin-right:15">10</label>
+                                        <icon src="theme_comment.png" style="margin-right:4;align:right"/>
+                                        <label style="font-size:10;color:#909090;align:right;margin-right:10">10</label>
+                                    </row>
+                                </col>
+                            </item>
+                        </list>
+                    </content>
+                </contents>
+            </tab>
+			<tab label="我的" icon="tab_mine.png,tab_mine_red.png" style="label-color:#464646,#f85959">
+                <content style="background:#f4f5f6">
+                    <list style="background:mine_background.jpg;height:225" type="transparent">
+                        <item style="padding:0 29 13">
+                            <col><row><icon src="mine_tel.png" style="align:center" onclick="$page.open('login_tel.xml')"/></row></col>
+                            <col><row><icon src="mine_wechat.png" style="align:center"/></row></col>
+                            <col><row><icon src="mine_qq.png" style="align:center"/></row></col>
+                            <col><row><icon src="mine_weibo.png" style="align:center"/></row></col>
+                        </item>
+                        <item style="padding:0"><row><label style="color:#ffffff;font-size:12;align:center;alpha:0.2;corner-radius:20;background:#000000;padding:3 9"> 更多登陆方式  〉</label></row></item>
+                    </list>
+                    <list type="transparent">
+                        <item style="padding:0;col-width:*,1,*;background:#e8e8e8">
+                            <col style="padding:9 0;background:#ffffff">
+                                <row><icon src="mine_select.png" style="align:center;height:22"/></row>
+                                <row><label style="align:center;color:#3f3f3f;font-size:12;margin-top:6">收藏</label></row>
+                            </col>
+                            <col></col>
+                            <col style="padding:9 0;background:#ffffff">
+                                <row><icon src="mine_set.png" style="align:center;height:22"/></row>
+                                <row><label style="align:center;color:#3f3f3f;font-size:12;margin-top:6">设置</label></row>
+                            </col>
+                        </item>
+                        <item style="padding:15 19;margin:10 0;background:#ffffff">
+                            <row>
+                                <label style="color:#353535;font-size:15">好友动态</label>
+                                <icon src="menu_right.png" style="align:right"/>
+                            </row>
+                        </item>
+                    </list>
+                    <list style="padding:0 0 0 19;background:#ffffff">
+                        <item style="padding:15 19 15 0;background:#ffffff">
+                            <row>
+                                <label style="color:#353535;font-size:15">通知</label>
+                                <icon src="menu_right.png" style="align:right"/>
+                            </row>
+                        </item>
+                        <item style="padding:15 19 15 0;background:#ffffff">
+                            <row>
+                                <label style="color:#353535;font-size:15">离线</label>
+                                <icon src="menu_right.png" style="align:right"/>
+                            </row>
+                        </item>
+                        <item style="padding:15 19 15 0;background:#ffffff">
+                            <row>
+                                <label style="color:#353535;font-size:15">活动</label>
+                                <icon src="menu_right.png" style="align:right"/>
+                            </row>
+                        </item>
+                        <item style="padding:15 19 15 0;background:#ffffff">
+                            <row>
+                                <label style="color:#353535;font-size:15">商城</label>
+                                <icon src="menu_right.png" style="align:right"/>
+                            </row>
+                        </item>
+                        <item style="padding:15 19 15 0;background:#ffffff">
+                            <row>
+                                <label style="color:#353535;font-size:15">今日游戏</label>
+                                <label style="color:#909090;font-size:11;margin-left:10">特卖，电影</label>
+                                <icon src="menu_right.png" style="align:right"/>
+                            </row>
+                        </item>
+                        <item style="padding:15 19 15 0;background:#ffffff">
+                            <row>
+                                <label style="color:#353535;font-size:15">我要爆料</label>
+                                <icon src="menu_right.png" style="align:right"/>
+                            </row>
+                        </item>
+                        <item style="padding:15 19 15 0;background:#ffffff">
+                            <row>
+                                <label style="color:#353535;font-size:15">反馈</label>
+                                <icon src="menu_right.png" style="align:right"/>
+                            </row>
+                        </item>
+                    </list>
+                </content>
+            </tab>
+		</tabs>
+    </page>
+</imag>

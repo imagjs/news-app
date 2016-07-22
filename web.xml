@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imag>
+    <script>
+        <![CDATA[
+            var storage = $phone.localStorage();
+            $page.onload = function(){
+                //var title = $param['title'];
+                var title = storage.getItem('title');
+                var link = storage.getItem('link');
+                $('web').src = link;
+                $('title').text = title;
+            }
+          ]]>
+    </script>
+    <page>
+        <title style="background:#fafafa">
+            <left><button role="back" style="color:#202020"/></left>
+            <center><label style="color:#202020" id="title"/></center>
+            <right><button style="color:#202020;font-size:20" onclick="$page.open('http://www.baidu.com',{target:'_blank'})">· · ·</button></right>
+        </title>
+        <content>
+            <web id="web" progress="true"/>
+        </content>
+    </page>
+</imag>
